@@ -56,25 +56,52 @@ if "camera" not in st.session_state:
 # Load model only once
 
 # Load model dari Google Drive hanya sekali
+# @st.cache_resource
+# def load_driver_system():
+#     model_path = "weightedmobilenet_5class_new.keras"
+   
+
 @st.cache_resource
 def load_driver_system():
     model_path = "weightedmobilenet_5class_new.keras"
+    temp_path = model_path + ".download"
     file_id = "1cMr9svNXfIUd7BXwkXDYbSLgmoo9ViHj"
 
-    # Download model jika belum tersedia
+    # Ukuran model pada log sekitar 638 MB
+    min_size = 500 * 1024 * 1024
+
+    # Hapus model yang kemungkinan belum selesai diunduh
+    if os.path.exists(model_path):
+        if os.path.getsize(model_path) < min_size:
+            os.remove(model_path)
+
+    # Download ulang jika model belum tersedia
     if not os.path.exists(model_path):
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
         with st.spinner("Mengunduh model, mohon tunggu..."):
             result = gdown.download(
                 id=file_id,
-                output=model_path,
+                output=temp_path,
                 quiet=False
             )
 
-        if result is None or not os.path.exists(model_path):
+        if (
+            result is None
+            or not os.path.exists(temp_path)
+            or os.path.getsize(temp_path) < min_size
+        ):
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
             raise RuntimeError(
-                "Gagal mengunduh model dari Google Drive. "
-                "Periksa ID file dan izin aksesnya."
+                "Model gagal diunduh secara lengkap. "
+                "Periksa akses Google Drive dan coba lagi."
             )
+
+        # Pindahkan file setelah download selesai
+        os.replace(temp_path, model_path)
 
     class_labels = [
         "forward",
