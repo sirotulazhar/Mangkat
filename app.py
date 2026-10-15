@@ -1,3 +1,5 @@
+import os
+import gdown
 import cv2
 import numpy as np
 import streamlit as st
@@ -52,9 +54,28 @@ if "camera" not in st.session_state:
     st.session_state.camera = None
 
 # Load model only once
+
+# Load model dari Google Drive hanya sekali
 @st.cache_resource
 def load_driver_system():
     model_path = "weightedmobilenet_5class_new.keras"
+    file_id = "1cMr9svNXfIUd7BXwkXDYbSLgmoo9ViHj"
+
+    # Download model jika belum tersedia
+    if not os.path.exists(model_path):
+        with st.spinner("Mengunduh model, mohon tunggu..."):
+            result = gdown.download(
+                id=file_id,
+                output=model_path,
+                quiet=False
+            )
+
+        if result is None or not os.path.exists(model_path):
+            raise RuntimeError(
+                "Gagal mengunduh model dari Google Drive. "
+                "Periksa ID file dan izin aksesnya."
+            )
+
     class_labels = [
         "forward",
         "mobile_usage",
@@ -62,6 +83,7 @@ def load_driver_system():
         "rotated",
         "yawn"
     ]
+
     return DriverMonitoringSystem(model_path, class_labels)
 
 system = load_driver_system()
