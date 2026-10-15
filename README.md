@@ -1,6 +1,4 @@
-# MANGKAT — Streamlit migration starter
-
-Starter project to migrate the Tkinter/OpenCV camera interface to Streamlit + WebRTC.
+# MANGKAT - Driver Monitoring System
 
 ## Requirements
 
